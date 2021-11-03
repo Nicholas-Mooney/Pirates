@@ -45,7 +45,7 @@ RECimg.src = "./src/recover.jpeg";
     Time = 24 //out of 24*4 = 92
 
     var Gold = 0
-    var shipMen = 20
+    var shipMen = 200
     var Food = 12
     var Morale = 75
 
@@ -408,7 +408,6 @@ document.addEventListener("keyup", keyUpHandler, false);
     }
     function despawnWaves(canvas) {
         for (let i = 0; i < wavesX.length; i++) {
-            Gold = wavesX.length
             if (wavesX[i] - playerX < -225) {
                 wavesX.splice(i, 1)
                 wavesY.splice(i, 1)
@@ -480,7 +479,6 @@ document.addEventListener("keyup", keyUpHandler, false);
     }
     function despawnWavesFight(canvas) {
         for (let i = 0; i < wavesX.length; i++) {
-            Gold = wavesX.length
             if (wavesX[i] - playerArenaX < -225) {
                 wavesX.splice(i, 1)
                 wavesY.splice(i, 1)
@@ -615,6 +613,11 @@ document.addEventListener("keyup", keyUpHandler, false);
         let checkDistance = collisionDist
         if (getDistance(playerArenaX, playerArenaY, enemyX, enemyY) < checkDistance) {
             advancement = 50
+            enemyMen = 40
+            swordfight = true
+            unchosen = true
+            enemyStance = 'enemyHits3'
+
             updateGame('swordfight')
         }
     } //enemy at ship fight
@@ -1018,7 +1021,15 @@ function updateGame(currlocation){
             drawMini()
         }
         if (currLoc.Type == 'swordfight') {
-
+            if(advancement > 99 | enemyMen < 0){
+                swordfight = false
+                goldTaken = false
+                updateGame('rewards')
+            }
+            else if(advancement < 1 || shipMen < 1){
+                swordfight = false
+                updateGame('havana')
+            }
             //UPDATE progress
             if(currLoc.Name == "swordfightUp"){
                 advancement += 10
@@ -1026,6 +1037,9 @@ function updateGame(currlocation){
                 advancement -= 10
             }else if(currLoc.Name == "swordfightNeutrak"){
                 //no advancement progress
+            }
+            if(advancement != 50){
+                updateSwordFightMen()
             }
 
             //DISPLAY men plus adv
@@ -1100,17 +1114,27 @@ function updateGame(currlocation){
             game.innerHTML += '<br>'
 
             //IMAGE
+            let images = document.createElement('span')
+            let buttons = document.createElement('div')
+            images.classList.add('a')
+            buttons.classList.add('a')
+            images.id = 'images'
+            buttons.id = 'buttons'
+            game.appendChild(images)
+            game.appendChild(buttons)
             appendIMGSF()
 
             //BUTTONS
             //set new buttons based on enemy stance
-            game.innerHTML += 'ACTIONS: '
+            buttons.innerHTML += 'ACTIONS: '
+            let br1 = document.createElement('div')
+            buttons.appendChild(br1)
             if(fightState == "eprec"){
                 lineBreakOne = document.createElement("br");
-                game.appendChild(lineBreakOne)
+                images.appendChild(lineBreakOne)
                 info = document.createElement("p");
                 info.innerText = "HE RECOVERS  /  " + enemyStance
-                game.appendChild(info)
+                images.appendChild(info)
                 lineBreakTwo = document.createElement("br");
                 game.appendChild(lineBreakTwo)
                 lineBreakThree = document.createElement("br");
@@ -1122,11 +1146,11 @@ function updateGame(currlocation){
             }//nada
             if(fightState == "pvuln"){
                 lineBreakOne = document.createElement("br");
-                game.appendChild(lineBreakOne)
+                images.appendChild(lineBreakOne)
 
                 info = document.createElement("p");
                 info.innerText = enemyAttack + "  /  ..."
-                game.appendChild(info)
+                images.appendChild(info)
 
                 lineBreakTwo = document.createElement("br");
                 game.appendChild(lineBreakTwo)
@@ -1139,43 +1163,43 @@ function updateGame(currlocation){
             }//nada / pick Atk
             if(fightState == "qvuln"){
                 lineBreakOne = document.createElement("br");
-                game.appendChild(lineBreakOne)
+                images.appendChild(lineBreakOne)
 
                 enemyAttack = 'None'
                 info = document.createElement("p");
                 info.innerText = "HE RECOVERS  /  ..."
-                game.appendChild(info)
+                images.appendChild(info)
 
                 appendSwordfightButtons()
             }//append / free hit
             if(fightState == "qinv"){
                 lineBreakOne = document.createElement("br");
-                game.appendChild(lineBreakOne)
+                images.appendChild(lineBreakOne)
 
                 enemyAttack = 'Wait'
                 info = document.createElement("p");
                 info.innerText = "...   /   ..."
-                game.appendChild(info)
+                images.appendChild(info)
 
                 appendSwordfightButtons()
             }//append / parry chance
             if(fightState == "qrand"){
                 lineBreakOne = document.createElement("br");
-                game.appendChild(lineBreakOne)
+                images.appendChild(lineBreakOne)
 
                 info = document.createElement("p");
                 info.innerText = enemyAttack + "  /  ..."
-                game.appendChild(info)
+                images.appendChild(info)
 
                 appendSwordfightButtons()
             }//append / pick Atk
             if(fightState == "qrand1"){
                 lineBreakOne = document.createElement("br");
-                game.appendChild(lineBreakOne)
+                images.appendChild(lineBreakOne)
 
                 info = document.createElement("p");
                 info.innerText = enemyAttack + "  /  ..."
-                game.appendChild(info)
+                images.appendChild(info)
 
                 appendSwordfightButtons()
             }//append
@@ -1210,7 +1234,9 @@ function updateGame(currlocation){
                 var delayInMilliseconds = 1030; //1 second
                 setTimeout(function() {
                     if(unchosen){
-                        updateSwordFight()
+                        if(swordfight) {
+                            updateSwordFight()
+                        }
                     }
                 }, delayInMilliseconds);
             }
@@ -1220,11 +1246,22 @@ function updateGame(currlocation){
             p3.innerText = 'FORCE ADVANCE:'
             game.appendChild(p3)
 
+
+            if(advancement > 99 | enemyMen < 0){
+                swordfight = false
+                goldTaken = false
+                updateGame('rewards')
+            }
+            else if(advancement < 1 || shipMen < 1){
+                swordfight = false
+                updateGame('havana')
+            }
+
         }
 
         //TEXT========================
         if (currLoc.Type == 'townsquare') {
-            game.innerHTML += '<img src="p;ttps://cdn.images.express.co.uk/img/dynamic/galleries/517x/326705.jpg" alt="Camilla Cabello">'
+            //game.innerHTML += '<img src="p;ttps://cdn.images.express.co.uk/img/dynamic/galleries/517x/326705.jpg" alt="Camilla Cabello">'
             game.innerHTML += '<br>'
             game.innerHTML += 'welcome to ' + currLoc.Name
             game.innerHTML += '<br>'
@@ -1253,6 +1290,22 @@ function updateGame(currlocation){
             })
             game.appendChild(button2)
         } // generic TAVERN BUTTONS
+        if (currLoc.Name == 'rewards') {
+            if(!goldTaken) {
+                const buttonGold = document.createElement('button')
+                buttonGold.innerText = 'Take Gold'
+                buttonGold.classList.add('btn')
+                buttonGold.addEventListener('click', () => {
+                    addGold()
+                    goldTaken = true
+                    updateGame('rewards')
+                })
+                game.appendChild(buttonGold)
+
+            }
+            lineBreak = document.createElement("br");
+            game.appendChild(lineBreak)
+        } // generic REWARDS BUTTONS
 
         currLoc.options.forEach(option => {
             if (showOption(option)) {
@@ -1533,6 +1586,7 @@ function resume(){paused = false} //...
 }
 
 //SWORDFIGHT
+let swordfight = false
 let fightState = 'qinv'
 let enemyAttack = 'None'
 let enemyMen = 50
@@ -1541,15 +1595,17 @@ let advancement = 50
 let enemyStance = 'playerHits3'
 function updateSwordFight(){
     //update stance
-    let down = false;
-    if(fightState == "qrand1"){
-        down = true
-    }
-    updateStance();
-    if(down){
-        updateGame('swordfightDown');
-    }else{
-        updateGame('swordfightNeutral');
+    if(swordfight) {
+        let down = false;
+        if (fightState == "qrand1") {
+            down = true
+        }
+        updateStance();
+        if (down) {
+            updateGame('swordfightDown');
+        } else {
+            updateGame('swordfightNeutral');
+        }
     }
 }
 function updateStance(){
@@ -1608,7 +1664,7 @@ function appendIMGSF(){
         br1 = document.createElement("br");
         game.appendChild(br1)
 
-        game.appendChild(RECimg)
+        document.getElementById('images').appendChild(RECimg)
 
         br2 = document.createElement("br");
         game.appendChild(br2)
@@ -1628,7 +1684,7 @@ function appendIMGSF(){
         br1 = document.createElement("br");
         game.appendChild(br1)
 
-        game.appendChild(QVULNimg)
+        document.getElementById('images').appendChild(QVULNimg)
 
         br2 = document.createElement("br");
         game.appendChild(br2)
@@ -1638,7 +1694,8 @@ function appendIMGSF(){
         br1 = document.createElement("br");
         game.appendChild(br1)
 
-        game.appendChild(QINVimg)
+
+        document.getElementById('images').appendChild(QINVimg)
 
         br2 = document.createElement("br");
         game.appendChild(br2)
@@ -1666,13 +1723,13 @@ function appendIMGSF(){
 }
 function appendATK(){
     if(enemyAttack == "High"){
-        game.appendChild(HIGHimg)
+        document.getElementById('images').appendChild(HIGHimg)
     }
     if(enemyAttack == "Thrust"){
-        game.appendChild(THRUSTimg)
+        document.getElementById('images').appendChild(THRUSTimg)
     }
     if(enemyAttack == "Low"){
-        game.appendChild(LOWimg)
+        document.getElementById('images').appendChild(LOWimg)
     }
 }
 function appendSwordfightButtons(){
@@ -1697,36 +1754,36 @@ function appendSwordfightButtons(){
         buttonHigh.addEventListener('click', SFparry);
         buttonThrust.addEventListener('click', SFhit);
         buttonLow.addEventListener('click',SFhit);
-        game.appendChild(buttonHigh);
-        game.appendChild(lineBreak12)
-        game.appendChild(buttonThrust);
-        game.appendChild(lineBreak13)
-        game.appendChild(buttonLow);
-        game.appendChild(lineBreak14)
+        document.getElementById('buttons').appendChild(buttonHigh);
+        document.getElementById('buttons').appendChild(lineBreak12)
+        document.getElementById('buttons').appendChild(buttonThrust);
+        document.getElementById('buttons').appendChild(lineBreak13)
+        document.getElementById('buttons').appendChild(buttonLow);
+        document.getElementById('buttons').appendChild(lineBreak14)
     }
     else if(enemyAttack == "Thrust"){
 
         buttonHigh.addEventListener('click', SFgethit);
         buttonThrust.addEventListener('click', SFparry);
         buttonLow.addEventListener('click',SFgethit);
-        game.appendChild(buttonHigh);
-        game.appendChild(lineBreak12)
-        game.appendChild(buttonThrust);
-        game.appendChild(lineBreak13)
-        game.appendChild(buttonLow);
-        game.appendChild(lineBreak14)
+        document.getElementById('buttons').appendChild(buttonHigh);
+        document.getElementById('buttons').appendChild(lineBreak12)
+        document.getElementById('buttons').appendChild(buttonThrust);
+        document.getElementById('buttons').appendChild(lineBreak13)
+        document.getElementById('buttons').appendChild(buttonLow);
+        document.getElementById('buttons').appendChild(lineBreak14)
     }
     else if(enemyAttack == "Low"){
 
         buttonHigh.addEventListener('click', SFhit);
         buttonThrust.addEventListener('click', SFgethit);
         buttonLow.addEventListener('click',SFparry);
-        game.appendChild(buttonHigh);
-        game.appendChild(lineBreak12)
-        game.appendChild(buttonThrust);
-        game.appendChild(lineBreak13)
-        game.appendChild(buttonLow);
-        game.appendChild(lineBreak14)
+        document.getElementById('buttons').appendChild(buttonHigh);
+        document.getElementById('buttons').appendChild(lineBreak12)
+        document.getElementById('buttons').appendChild(buttonThrust);
+        document.getElementById('buttons').appendChild(lineBreak13)
+        document.getElementById('buttons').appendChild(buttonLow);
+        document.getElementById('buttons').appendChild(lineBreak14)
     }
     else if(enemyAttack == "Wait"){
 
@@ -1734,24 +1791,30 @@ function appendSwordfightButtons(){
         buttonHigh.addEventListener('click', SFChance);
         buttonThrust.addEventListener('click', SFChance);
         buttonLow.addEventListener('click',SFChance);
-        game.appendChild(buttonHigh);
-        game.appendChild(lineBreak12)
-        game.appendChild(buttonThrust);
-        game.appendChild(lineBreak13)
-        game.appendChild(buttonLow);
-        game.appendChild(lineBreak14)
+        document.getElementById('buttons').appendChild(buttonHigh);
+        document.getElementById('buttons').appendChild(lineBreak12)
+        document.getElementById('buttons').appendChild(buttonThrust);
+        document.getElementById('buttons').appendChild(lineBreak13)
+        document.getElementById('buttons').appendChild(buttonLow);
+        document.getElementById('buttons').appendChild(lineBreak14)
     }
     else{
         buttonHigh.addEventListener('click', SFhit);
         buttonThrust.addEventListener('click', SFhit);
         buttonLow.addEventListener('click',SFhit);
-        game.appendChild(buttonHigh);
-        game.appendChild(lineBreak12)
-        game.appendChild(buttonThrust);
-        game.appendChild(lineBreak13)
-        game.appendChild(buttonLow);
-        game.appendChild(lineBreak14)
+        document.getElementById('buttons').appendChild(buttonHigh);
+        document.getElementById('buttons').appendChild(lineBreak12)
+        document.getElementById('buttons').appendChild(buttonThrust);
+        document.getElementById('buttons').appendChild(lineBreak13)
+        document.getElementById('buttons').appendChild(buttonLow);
+        document.getElementById('buttons').appendChild(lineBreak14)
     }//free hit
+}
+function updateSwordFightMen(){
+    let temp = shipMen;
+
+    shipMen -= roundFloor(enemyMen/50) + 1
+    enemyMen -= roundFloor(temp/50) + 1
 }
 function SFgethit(){
     unchosen = false
@@ -1798,6 +1861,11 @@ function SFChance(){
 
 }
 
+//REWARDS
+let goldTaken = false
+function addGold(){
+        Gold += getRand(0,300);
+}
 
 //GAMESTATS UPDATES
     function updateTowns() {
@@ -1966,10 +2034,6 @@ const places = [
             {
                 destination: 'sea',
                 text: 'sink',
-            },
-            {
-                destination: 'rewards',
-                text: 'take gold',
             },
             {
                 destination: 'raid',
